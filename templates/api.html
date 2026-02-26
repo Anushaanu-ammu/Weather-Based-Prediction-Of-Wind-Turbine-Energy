@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location-Based Wind Turbine Power Predictor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background-color: rgba(15, 32, 39, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        nav a {
+            color: #e6e6e6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #00db4d;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            text-align: center;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #00dbbade;
+        }
+
+        .btn {
+            background: linear-gradient(to right, #00dba4, #7eb000);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+            font-weight: 600;
+            margin: 1rem;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 180, 219, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .input-group {
+            margin: 1.5rem 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 80%;
+            max-width: 300px;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .weather-data, .result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 180, 219, 0.1);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .weather-data.show, .result.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .energy-output {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #00b4db;
+            margin: 1rem 0;
+        }
+
+        .loading {
+            display: none;
+            margin: 1rem 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid #00dbb3;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            background-color: rgba(15, 32, 39, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 1rem; }
+            nav ul { gap: 1rem; }
+            .input-group input { width: 100%; }
+            .energy-output { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-fan" style="font-size: 2rem; color: #00dbba;"></i>
+            <div class="logo-text">Location-Based Wind Power Predictor</div>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Current Location Section -->
+        <div class="section">
+            <h2><i class="fas fa-map-marker-alt"></i> Predict for Current Location</h2>
+            <p>Click the button to use your device's location and get real-time weather data for wind turbine power prediction.</p>
+            <button class="btn" id="current-btn" onclick="predictCurrentLocation()">
+                <i class="fas fa-location-arrow"></i> Get Current Location & Predict
+            </button>
+            <div class="loading" id="current-loading">
+                <div class="spinner"></div>
+                <p>Fetching location and weather data...</p>
+            </div>
+            <div class="weather-data" id="current-weather"></div>
+            <div class="result" id="current-result"></div>
+        </div>
+
+        <!-- Custom Location Section -->
+        <div class="section">
+            <h2><i class="fas fa-search-location"></i> Predict for Another Location</h2>
+            <p>Enter a city name (e.g., "London", "New York") to fetch weather data and predict power generation.</p>
+            <div class="input-group">
+                <label for="location-input">City Name:</label>
+                <input type="text" id="location-input" placeholder="Enter city name (e.g., Mumbai)" />
+            </div>
+            <button class="btn" id="custom-btn" onclick="predictCustomLocation()">
+                <i class="fas fa-calculator"></i> Predict Power for This Location
+            </button>
+            <div class="loading" id="custom-loading">
+                <div class="spinner"></div>
+                <p>Fetching weather data...</p>
+            </div>
+            <div class="weather-data" id="custom-weather"></div>
+            <div class="result" id="custom-result"></div>
+        </div>
+
+    <footer>
+        <p>© 2025 Location-Based Wind Power Predictor | Powered by OpenWeatherMap API</p>
+    </footer>
+
+    <script>
+        // Replace with your OpenWeatherMap API key
+        const API_KEY = 'a858f25b862192a043251f3db593498f'; // Get free key from https://openweathermap.org/api
+        const API_URL = 'https://api.openweathermap.org/data/2.5/weather';
+        
+        // Standard turbine assumptions
+        const BLADE_LENGTH = 40; // meters (default)
+        const EFFICIENCY = 0.4;
+        const R = 287.05; // Gas constant for dry air (J/kg·K)
+
+        // Predict for current location
+        async function predictCurrentLocation() {
+            const btn = document.getElementById('current-btn');
+            const loading = document.getElementById('current-loading');
+            const weatherDiv = document.getElementById('current-weather');
+            const resultDiv = document.getElementById('current-result');
+
+            btn.disabled = true;
+            loading.classList.add('show');
+            weatherDiv.classList.remove('show');
+            resultDiv.classList.remove('show');
+
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by this browser.');
+                resetCurrent();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        const weather = await fetchWeather(lat, lon);
+                        displayWeatherAndPredict(weather, 'current');
+                    } catch (error) {
+                        alert('Error fetching weather data: ' + error.message);
+                    }
+                },
+                (error) => {
+                    alert('Location access denied or error: ' + error.message);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        }
+
+        // Predict for custom location
+        async function predictCustomLocation() {
+            const location = document.getElementById('location-input').value.trim();
+            if (!location) {
+                alert('Please enter a city name.');
+                return;
+            }
+
+            const btn = document.getElementById('custom-btn');
+            const loading = document.getElementById('custom-loading');
+            const weatherDiv = document.getElementById('custom-weather');
+            const resultDiv = document.getElementById('custom-result');
+
+            btn.disabled = true;
+            loading.classList.add('show');
+            weatherDiv.classList.remove('show');
+            resultDiv.classList.remove('show');
+
+            try {
+                const weather = await fetchWeatherByCity(location);
+                displayWeatherAndPredict(weather, 'custom');
+            } catch (error) {
+                alert('Error fetching weather data for ' + location + ': ' + error.message);
+            }
+        }
+
+        // Fetch weather by lat/lon
+        async function fetchWeather(lat, lon) {
+            const url = `${API_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('API request failed');
+            return await response.json();
+        }
+
+        // Fetch weather by city name
+        async function fetchWeatherByCity(city) {
+            const url = `${API_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('City not found or API error');
+            return await response.json();
+        }
+
+        // Display weather and predict power
+        function displayWeatherAndPredict(weather, type) {
+            const temp = weather.main.temp;
+            const pressure = weather.main.pressure;
+            const humidity = weather.main.humidity;
+            const windSpeed = weather.wind.speed;
+            const city = weather.name || 'Current Location';
+            const lat = weather.coord.lat;
+            const lon = weather.coord.lon;
+
+            // Calculate air density (simplified: ρ = P / (R * T), T in Kelvin)
+            const tempK = temp + 273.15;
+            let airDensity = (pressure * 100) / (R * tempK); // Pa to hPa conversion
+            // Adjust for humidity (approximate)
+            const vaporPressure = (humidity / 100) * 6.11 * Math.pow(10, (7.5 * temp) / (237.3 + temp));
+            airDensity *= (1 - 0.378 * (vaporPressure / pressure));
+
+            // Swept area
+            const radius = BLADE_LENGTH;
+            const sweptArea = Math.PI * Math.pow(radius, 2);
+
+            // Power in watts
+            const power = 0.5 * airDensity * sweptArea * Math.pow(windSpeed, 3) * EFFICIENCY;
+
+            // Energy in MWh for 24 hours
+            const energyMWh = (power * 24) / 1e6;
+
+            // Display weather
+            const weatherDiv = document.getElementById(type + '-weather');
+            weatherDiv.innerHTML = `
+                <h3>Weather Data for ${city} (${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E)</h3>
+                <p><strong>Temperature:</strong> ${temp}°C</p>
+                <p><strong>Wind Speed:</strong> ${windSpeed} m/s</p>
+                <p><strong>Humidity:</strong> ${humidity}%</p>
+                <p><strong>Pressure:</strong> ${pressure} hPa</p>
+                <p><strong>Calculated Air Density:</strong> ${airDensity.toFixed(3)} kg/m³</p>
+            `;
+            weatherDiv.classList.add('show');
+
+            // Display result
+            const resultDiv = document.getElementById(type + '-result');
+            resultDiv.innerHTML = `
+                <h3>Predicted Wind Turbine Power Generation</h3>
+                <div class="energy-output">${energyMWh.toFixed(2)} MWh</div>
+                <p>Assumptions: Blade Length = ${BLADE_LENGTH}m, Efficiency = ${EFFICIENCY * 100}%<br>
+                Estimated for 24 hours at current conditions. Actual output may vary.</p>
+            `;
+            resultDiv.classList.add('show');
+
+            // Reset UI
+            resetUI(type);
+        }
+
+        // Reset button and loading
+        function resetUI(type) {
+            setTimeout(() => {
+                document.getElementById(type + '-btn').disabled = false;
+                document.getElementById(type + '-loading').classList.remove('show');
+            }, 1000);
+        }
+
+        // Reset current location UI
+        function resetCurrent() {
+            document.getElementById('current-btn').disabled = false;
+            document.getElementById('current-loading').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
