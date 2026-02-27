@@ -1,5 +1,6 @@
 **Weather-Based Prediction of Wind Turbine Energy Output Using Machine Learning**
-📌 Project Overview
+
+**Project Overview :**
 
 This project focuses on predicting wind turbine energy output using weather parameters and machine learning techniques. Since wind energy generation depends heavily on environmental conditions, accurate prediction helps in better planning, energy management, and reducing operational losses.
 
@@ -147,9 +148,13 @@ Power generation planning
 Grid load balancing
 
 Wind farm efficiency optimization
-
+ 
 **Conclusion :**
 
 This project demonstrates how machine learning can be effectively used to predict wind turbine energy output based on weather conditions. By improving prediction accuracy, it supports better renewable energy utilization and sustainable power management.
 
 The system is simple, efficient, and practical for real-world applications in clean energy forecasting.
+
+** Developed By
+
+Gogireddy Anusha and team**
